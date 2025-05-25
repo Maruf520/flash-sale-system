@@ -4,6 +4,6 @@
     {
         public string FullName { get; set; } = default!;
         public virtual Address Address { get; set; } = default!;
-        public virtual PaymentInfo PaymentInfo { get; set; } = default!;
+        public ICollection<PaymentInfo> PaymentInfos { get; set; } = new List<PaymentInfo>();
     }
 }

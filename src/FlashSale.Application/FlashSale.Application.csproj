@@ -10,4 +10,9 @@
     <ProjectReference Include="..\FlashSale.Core\FlashSale.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Services\" />
+    <Folder Include="Orders\" />
+  </ItemGroup>
+
 </Project>

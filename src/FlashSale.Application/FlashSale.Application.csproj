@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\FlashSale.Core\FlashSale.Core.csproj" />
+  </ItemGroup>
+
 </Project>

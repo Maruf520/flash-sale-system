@@ -2,9 +2,9 @@
 {
     public class SaleStartedEvent
     {
-        public FlashSaleEntity FlashSale { get; }
+        public FlashDeal FlashSale { get; }
 
-        public SaleStartedEvent(FlashSaleEntity flashSale)
+        public SaleStartedEvent(FlashDeal flashSale)
         {
             FlashSale = flashSale;
         }

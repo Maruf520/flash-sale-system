@@ -2,9 +2,9 @@
 {
     public class SaleEndedEvent : DomainEvent
     {
-        public FlashSaleEntity FlashSale { get; }
+        public FlashDeal FlashSale { get; }
 
-        public SaleEndedEvent(FlashSaleEntity flashSale)
+        public SaleEndedEvent(FlashDeal flashSale)
         {
             FlashSale = flashSale ?? throw new ArgumentNullException(nameof(flashSale));
         }

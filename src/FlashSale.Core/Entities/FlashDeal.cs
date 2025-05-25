@@ -1,6 +1,6 @@
 ﻿namespace FlashSale.Core.Entities
 {
-    public class FlashSale : BaseEntity
+    public class FlashDeal : BaseEntity
     {
         public Guid ProductId { get; set; }
         public decimal DiscountedPrice { get; set; }

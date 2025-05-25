@@ -11,6 +11,6 @@
 
         public ApplicationUser User { get; set; } = default!;
         public Product Product { get; set; } = default!;
-        public FlashSale FlashSale { get; set; } = default!;
+        public FlashDeal FlashSale { get; set; } = default!;
     }
 }

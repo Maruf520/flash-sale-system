@@ -7,6 +7,6 @@
         public decimal OriginalPrice { get; set; }
         public int TotalStock { get; set; }
 
-        public ICollection<FlashSale> FlashSales { get; set; } = new List<FlashSale>();
+        public ICollection<FlashDeal> FlashSales { get; set; } = new List<FlashDeal>();
     }
 }

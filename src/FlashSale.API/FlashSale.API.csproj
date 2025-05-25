@@ -13,4 +13,9 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\FlashSale.Application\FlashSale.Application.csproj" />
+    <ProjectReference Include="..\FlashSale.Infrastructure\FlashSale.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>

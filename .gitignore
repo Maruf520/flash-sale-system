@@ -1,0 +1,45 @@
+# Ignore build output
+**/bin/
+**/obj/
+**/out/
+
+# Ignore user-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Ignore VS and Rider workspace settings
+.vs/
+.idea/
+.vscode/
+*.code-workspace
+
+# Ignore logs
+*.log
+logs/
+
+# Ignore published files and packages
+**/publish/
+**/packages/
+*.nupkg
+*.snupkg
+
+# Ignore test results
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# ASP.NET Core environment-specific config
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker files (optional if not using Docker)
+.dockerignore
+Dockerfile

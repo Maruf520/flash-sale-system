@@ -12,14 +12,16 @@
         public async Task<Product?> GetByIdAsync(Guid id)
         {
             return await _context.Products
-                .Include(p => p.FlashDeals)
+                .Include(p => p.FlashSaleItems)                    
+                    .ThenInclude(fsi => fsi.FlashSaleEventEntity)  
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
 
         public async Task<IEnumerable<Product>> GetAllAsync()
         {
             return await _context.Products
-                .Include(p => p.FlashDeals)
+                .Include(p => p.FlashSaleItems)                    
+                    .ThenInclude(fsi => fsi.FlashSaleEventEntity)  
                 .ToListAsync();
         }
 
@@ -43,6 +45,38 @@
                 _context.Products.Remove(product);
                 await _context.SaveChangesAsync();
             }
+        }
+
+
+        public async Task<IEnumerable<Product>> GetProductsWithActiveFlashSalesAsync()
+        {
+            var now = DateTime.UtcNow;
+            return await _context.Products
+                .Include(p => p.FlashSaleItems)
+                    .ThenInclude(fsi => fsi.FlashSaleEventEntity)
+                .Where(p => p.FlashSaleItems.Any(fsi =>
+                    fsi.FlashSaleEventEntity.IsActive &&
+                    fsi.FlashSaleEventEntity.StartTime <= now &&
+                    fsi.FlashSaleEventEntity.EndTime >= now &&
+                    fsi.AvailableStock > 0))
+                .ToListAsync();
+        }
+
+        public async Task<Product?> GetProductWithFlashSaleDetailsAsync(Guid productId)
+        {
+            return await _context.Products
+                .Include(p => p.FlashSaleItems)
+                    .ThenInclude(fsi => fsi.FlashSaleEventEntity)
+                .FirstOrDefaultAsync(p => p.Id == productId);
+        }
+
+        public async Task<IEnumerable<Product>> GetProductsByFlashSaleEventAsync(Guid flashSaleEventId)
+        {
+            return await _context.Products
+                .Include(p => p.FlashSaleItems)
+                    .ThenInclude(fsi => fsi.FlashSaleEventEntity)
+                .Where(p => p.FlashSaleItems.Any(fsi => fsi.FlashSaleEventId == flashSaleEventId))
+                .ToListAsync();
         }
     }
 }

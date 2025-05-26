@@ -1,4 +1,5 @@
-﻿using Order = FlashSale.Core.Entities.Order;
+﻿using FlashSale.Core.Enums;
+using Order = FlashSale.Core.Entities.Order;
 
 namespace FlashSale.Infrastructure.Repositories
 {
@@ -16,15 +17,20 @@ namespace FlashSale.Infrastructure.Repositories
         {
             return await _context.Orders
                 .Include(o => o.User)
-                .Include(o => o.FlashSale)
+                .Include(o => o.Product)
+                .Include(o => o.FlashSaleItem)                    // Changed from FlashSale
+                    .ThenInclude(fsi => fsi.FlashSaleEventEntity) // Include the event
                 .FirstOrDefaultAsync(o => o.Id == id);
         }
 
         public async Task<IEnumerable<Order>> GetByUserIdAsync(Guid userId)
         {
             return await _context.Orders
-                .Include(o => o.FlashSale)
+                .Include(o => o.Product)
+                .Include(o => o.FlashSaleItem)                    // Changed from FlashSale
+                    .ThenInclude(fsi => fsi.FlashSaleEventEntity) // Include the event
                 .Where(o => o.UserId == userId)
+                .OrderByDescending(o => o.CreatedAt)              // Most recent orders first
                 .ToListAsync();
         }
 
@@ -40,5 +46,37 @@ namespace FlashSale.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
+        // Additional useful methods
+        public async Task<IEnumerable<Order>> GetByFlashSaleEventIdAsync(Guid flashSaleEventId)
+        {
+            return await _context.Orders
+                .Include(o => o.User)
+                .Include(o => o.Product)
+                .Include(o => o.FlashSaleItem)
+                    .ThenInclude(fsi => fsi.FlashSaleEventEntity)
+                .Where(o => o.FlashSaleItem.FlashSaleEventId == flashSaleEventId)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Order>> GetPendingOrdersAsync()
+        {
+            return await _context.Orders
+                .Include(o => o.User)
+                .Include(o => o.Product)
+                .Include(o => o.FlashSaleItem)
+                    .ThenInclude(fsi => fsi.FlashSaleEventEntity)
+                .Where(o => o.Status == OrderStatus.Pending)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Order>> GetExpiredOrdersAsync()
+        {
+            var now = DateTime.UtcNow;
+            return await _context.Orders
+                .Include(o => o.FlashSaleItem)
+                .Where(o => o.Status == OrderStatus.Pending && o.ExpireAt < now)
+                .ToListAsync();
+        }
     }
 }
+

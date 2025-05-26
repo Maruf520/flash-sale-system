@@ -17,6 +17,12 @@
                    .WithMany()
                    .HasForeignKey(o => o.ProductId)
                    .OnDelete(DeleteBehavior.Restrict);
+
+     
+            builder.HasOne(o => o.FlashSaleItem)
+                   .WithMany()
+                   .HasForeignKey(o => o.FlashSaleItemId)
+                   .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

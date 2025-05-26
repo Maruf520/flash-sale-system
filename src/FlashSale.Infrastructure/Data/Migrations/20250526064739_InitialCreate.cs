@@ -53,6 +53,24 @@ namespace FlashSale.Infrastructure.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "FlashSaleEvents",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
+                    StartTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FlashSaleEvents", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Permissions",
                 columns: table => new
                 {
@@ -273,27 +291,34 @@ namespace FlashSale.Infrastructure.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "FlashDeals",
+                name: "FlashSaleItems",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    FlashSaleEventId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     ProductId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    OriginalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     DiscountedPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    StartTime = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EndTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    DiscountPercentage = table.Column<decimal>(type: "decimal(5,2)", nullable: false),
                     AvailableStock = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_FlashDeals", x => x.Id);
+                    table.PrimaryKey("PK_FlashSaleItems", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_FlashDeals_Products_ProductId",
+                        name: "FK_FlashSaleItems_FlashSaleEvents_FlashSaleEventId",
+                        column: x => x.FlashSaleEventId,
+                        principalTable: "FlashSaleEvents",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_FlashSaleItems_Products_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -303,7 +328,7 @@ namespace FlashSale.Infrastructure.Data.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     ProductId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    FlashSaleId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    FlashSaleItemId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
                     ExpireAt = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -322,11 +347,11 @@ namespace FlashSale.Infrastructure.Data.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Orders_FlashDeals_FlashSaleId",
-                        column: x => x.FlashSaleId,
-                        principalTable: "FlashDeals",
+                        name: "FK_Orders_FlashSaleItems_FlashSaleItemId",
+                        column: x => x.FlashSaleItemId,
+                        principalTable: "FlashSaleItems",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Orders_Products_ProductId",
                         column: x => x.ProductId,
@@ -393,14 +418,19 @@ namespace FlashSale.Infrastructure.Data.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_FlashDeals_ProductId",
-                table: "FlashDeals",
+                name: "IX_FlashSaleItems_FlashSaleEventId",
+                table: "FlashSaleItems",
+                column: "FlashSaleEventId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FlashSaleItems_ProductId",
+                table: "FlashSaleItems",
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Orders_FlashSaleId",
+                name: "IX_Orders_FlashSaleItemId",
                 table: "Orders",
-                column: "FlashSaleId");
+                column: "FlashSaleItemId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Orders_ProductId",
@@ -454,7 +484,7 @@ namespace FlashSale.Infrastructure.Data.Migrations
                 name: "RolePermissions");
 
             migrationBuilder.DropTable(
-                name: "FlashDeals");
+                name: "FlashSaleItems");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
@@ -464,6 +494,9 @@ namespace FlashSale.Infrastructure.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "Permissions");
+
+            migrationBuilder.DropTable(
+                name: "FlashSaleEvents");
 
             migrationBuilder.DropTable(
                 name: "Products");

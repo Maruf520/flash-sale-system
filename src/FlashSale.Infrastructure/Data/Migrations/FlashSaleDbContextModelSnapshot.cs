@@ -145,7 +145,45 @@ namespace FlashSale.Infrastructure.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("FlashSale.Core.Entities.FlashDeal", b =>
+            modelBuilder.Entity("FlashSale.Core.Entities.FlashSaleEventEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime>("EndTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("FlashSaleEvents", (string)null);
+                });
+
+            modelBuilder.Entity("FlashSale.Core.Entities.FlashSaleItem", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -157,26 +195,31 @@ namespace FlashSale.Infrastructure.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<decimal>("DiscountPercentage")
+                        .HasColumnType("decimal(5,2)");
+
                     b.Property<decimal>("DiscountedPrice")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<DateTime>("EndTime")
-                        .HasColumnType("datetime2");
+                    b.Property<Guid>("FlashSaleEventId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("OriginalPrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("StartTime")
-                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("FlashSaleEventId");
+
                     b.HasIndex("ProductId");
 
-                    b.ToTable("FlashDeals");
+                    b.ToTable("FlashSaleItems", (string)null);
                 });
 
             modelBuilder.Entity("FlashSale.Core.Entities.Order", b =>
@@ -191,7 +234,7 @@ namespace FlashSale.Infrastructure.Data.Migrations
                     b.Property<DateTime>("ExpireAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("FlashSaleId")
+                    b.Property<Guid>("FlashSaleItemId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("PaymentMethod")
@@ -217,7 +260,7 @@ namespace FlashSale.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FlashSaleId");
+                    b.HasIndex("FlashSaleItemId");
 
                     b.HasIndex("ProductId");
 
@@ -513,23 +556,31 @@ namespace FlashSale.Infrastructure.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("FlashSale.Core.Entities.FlashDeal", b =>
+            modelBuilder.Entity("FlashSale.Core.Entities.FlashSaleItem", b =>
                 {
-                    b.HasOne("FlashSale.Core.Entities.Product", "Product")
-                        .WithMany("FlashDeals")
-                        .HasForeignKey("ProductId")
+                    b.HasOne("FlashSale.Core.Entities.FlashSaleEventEntity", "FlashSaleEventEntity")
+                        .WithMany("FlashSaleItems")
+                        .HasForeignKey("FlashSaleEventId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("FlashSale.Core.Entities.Product", "Product")
+                        .WithMany("FlashSaleItems")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("FlashSaleEventEntity");
 
                     b.Navigation("Product");
                 });
 
             modelBuilder.Entity("FlashSale.Core.Entities.Order", b =>
                 {
-                    b.HasOne("FlashSale.Core.Entities.FlashDeal", "FlashSale")
+                    b.HasOne("FlashSale.Core.Entities.FlashSaleItem", "FlashSaleItem")
                         .WithMany()
-                        .HasForeignKey("FlashSaleId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("FlashSaleItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("FlashSale.Core.Entities.Product", "Product")
@@ -544,7 +595,7 @@ namespace FlashSale.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("FlashSale");
+                    b.Navigation("FlashSaleItem");
 
                     b.Navigation("Product");
 
@@ -639,9 +690,14 @@ namespace FlashSale.Infrastructure.Data.Migrations
                     b.Navigation("PaymentInfos");
                 });
 
+            modelBuilder.Entity("FlashSale.Core.Entities.FlashSaleEventEntity", b =>
+                {
+                    b.Navigation("FlashSaleItems");
+                });
+
             modelBuilder.Entity("FlashSale.Core.Entities.Product", b =>
                 {
-                    b.Navigation("FlashDeals");
+                    b.Navigation("FlashSaleItems");
                 });
 
             modelBuilder.Entity("FlashSale.Core.Entities.ApplicationRole", b =>

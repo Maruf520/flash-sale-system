@@ -2,11 +2,11 @@
 {
     public class SaleStartedEvent
     {
-        public FlashDeal FlashSale { get; }
+        public FlashSaleEventEntity FlashSaleEvent { get; }
 
-        public SaleStartedEvent(FlashDeal flashSale)
+        public SaleStartedEvent(FlashSaleEventEntity flashSaleEvent)
         {
-            FlashSale = flashSale;
+            FlashSaleEvent = flashSaleEvent ?? throw new ArgumentNullException(nameof(flashSaleEvent));
         }
     }
 }

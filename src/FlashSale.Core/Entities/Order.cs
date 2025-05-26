@@ -1,4 +1,6 @@
-﻿namespace FlashSale.Core.Entities
+﻿using FlashSale.Core.Events;
+
+namespace FlashSale.Core.Entities
 {
     public class Order : BaseEntity
     {
@@ -15,5 +17,31 @@
 
         public string? PaymentMethod { get; set; }
         public string? TransactionId { get; set; }
+
+        public static Order Create(
+          Guid userId,
+          Guid productId,
+          Guid flashSaleId,
+          decimal price,
+          DateTime expireAt,
+          string? paymentMethod = null,
+          string? transactionId = null)
+        {
+            var order = new Order
+            {
+                UserId = userId,
+                ProductId = productId,
+                FlashSaleId = flashSaleId,
+                Price = price,
+                Status = OrderStatus.Pending,
+                ExpireAt = expireAt,
+                PaymentMethod = paymentMethod,
+                TransactionId = transactionId
+            };
+
+            order.AddDomainEvent(new OrderPlacedEvent(order));
+
+            return order;
+        }
     }
 }

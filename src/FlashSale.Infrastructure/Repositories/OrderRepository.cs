@@ -1,4 +1,6 @@
-﻿namespace FlashSale.Infrastructure.Repositories
+﻿using Order = FlashSale.Core.Entities.Order;
+
+namespace FlashSale.Infrastructure.Repositories
 {
     public class OrderRepository : IOrderRepository
     {

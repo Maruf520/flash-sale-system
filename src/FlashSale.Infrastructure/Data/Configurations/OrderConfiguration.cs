@@ -10,11 +10,13 @@
 
             builder.HasOne(o => o.User)
                    .WithMany()
-                   .HasForeignKey(o => o.UserId);
+                   .HasForeignKey(o => o.UserId)
+                   .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(o => o.Product)
                    .WithMany()
-                   .HasForeignKey(o => o.ProductId);
+                   .HasForeignKey(o => o.ProductId)
+                   .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

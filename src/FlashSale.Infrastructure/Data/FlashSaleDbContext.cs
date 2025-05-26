@@ -1,6 +1,10 @@
-﻿namespace FlashSale.Infrastructure.Data
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+
+namespace FlashSale.Infrastructure.Data
 {
-    public class FlashSaleDbContext : DbContext
+    public class FlashSaleDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
     {
         public FlashSaleDbContext(DbContextOptions<FlashSaleDbContext> options)
         : base(options) { }
@@ -20,6 +24,7 @@
             base.OnModelCreating(builder);
 
             builder.ApplyConfigurationsFromAssembly(typeof(FlashSaleDbContext).Assembly);
+            builder.Ignore<DomainEvent>();
         }
     }
 }

@@ -9,8 +9,9 @@
             builder.Property(f => f.AvailableStock).IsRequired();
 
             builder.HasOne(f => f.Product)
-                   .WithMany()
-                   .HasForeignKey(f => f.ProductId);
+                   .WithMany(f => f.FlashDeals)
+                   .HasForeignKey(f => f.ProductId)
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

@@ -11,7 +11,7 @@
 
             builder.HasOne(u => u.Address)
                    .WithOne()
-                   .HasForeignKey<Address>(a => a.UserId);
+                   .HasForeignKey<Address>(a => a.ApplicationUserId);
 
             builder.HasMany(u => u.PaymentInfos)
                    .WithOne(p => p.User)

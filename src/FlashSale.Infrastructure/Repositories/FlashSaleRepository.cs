@@ -116,6 +116,30 @@
             _context.FlashSaleItems.Update(flashSaleItem);
             await _context.SaveChangesAsync();
         }
+        public async Task<IEnumerable<FlashSaleEventEntity>> GetFlashSalesStartingSoonAsync(TimeSpan timeSpan)
+        {
+            var now = DateTime.UtcNow;
+            var startingSoon = now.Add(timeSpan);
+
+            return await _context.FlashSaleEventEntities
+                .Include(fse => fse.FlashSaleItems)
+                    .ThenInclude(fsi => fsi.Product)
+                .Where(fse => fse.StartTime > now &&
+                             fse.StartTime <= startingSoon &&
+                             fse.IsActive)
+                .ToListAsync();
+        }
+        public async Task<IEnumerable<FlashSaleItem>> GetActiveFlashSaleItemsAsync()
+        {
+            var now = DateTime.UtcNow;
+            return await _context.FlashSaleItems
+                .Include(fsi => fsi.Product)
+                .Include(fsi => fsi.FlashSaleEventEntity)
+                .Where(fsi => fsi.FlashSaleEventEntity.StartTime <= now &&
+                             fsi.FlashSaleEventEntity.EndTime >= now &&
+                             fsi.FlashSaleEventEntity.IsActive)
+                .ToListAsync();
+        }
         #endregion
     }
 }

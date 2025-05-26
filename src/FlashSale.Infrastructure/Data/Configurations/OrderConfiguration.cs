@@ -1,4 +1,6 @@
-﻿namespace FlashSale.Infrastructure.Data.Configurations
+﻿using Order = FlashSale.Core.Entities.Order;
+
+namespace FlashSale.Infrastructure.Data.Configurations
 {
     public class OrderConfiguration : IEntityTypeConfiguration<Order>
     {

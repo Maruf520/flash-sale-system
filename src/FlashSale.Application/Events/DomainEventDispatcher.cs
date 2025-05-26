@@ -1,6 +1,4 @@
-﻿using FlashSale.Application.Notifications;
-using FlashSale.Core.Common;
-using FlashSale.Core.Events;
+﻿using FlashSale.Core.Common;
 using MediatR;
 
 namespace FlashSale.Application.Events
@@ -20,17 +18,18 @@ namespace FlashSale.Application.Events
 
             foreach (var domainEvent in domainEvents)
             {
-                switch (domainEvent)
-                {
-                    case OrderPlacedEvent e:
-                        await _mediator.Publish(new OrderPlacedEventNotification(e.Order));
-                        break;
-
-                        // Add more event mappings here if needed
-                }
+                await _mediator.Publish(domainEvent);
             }
 
             entity.ClearDomainEvents();
+        }
+
+        public async Task DispatchAndClearEventsAsync(IEnumerable<BaseEntity> entities)
+        {
+            foreach (var entity in entities)
+            {
+                await DispatchAndClearEventsAsync(entity);
+            }
         }
     }
 }

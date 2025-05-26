@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FlashSale.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(FlashSaleDbContext))]
-    [Migration("20250526064739_InitialCreate")]
+    [Migration("20250526131455_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -231,6 +231,13 @@ namespace FlashSale.Infrastructure.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("CancellationReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -240,8 +247,16 @@ namespace FlashSale.Infrastructure.Data.Migrations
                     b.Property<Guid>("FlashSaleItemId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime?>("PaymentCompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PaymentId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("PaymentMethod")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
@@ -253,7 +268,8 @@ namespace FlashSale.Infrastructure.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("TransactionId")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -263,9 +279,15 @@ namespace FlashSale.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ExpireAt");
+
                     b.HasIndex("FlashSaleItemId");
 
+                    b.HasIndex("PaymentId");
+
                     b.HasIndex("ProductId");
+
+                    b.HasIndex("Status");
 
                     b.HasIndex("UserId");
 

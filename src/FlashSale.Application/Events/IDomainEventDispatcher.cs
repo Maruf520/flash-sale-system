@@ -5,5 +5,6 @@ namespace FlashSale.Application.Events
     public interface IDomainEventDispatcher
     {
         Task DispatchAndClearEventsAsync(BaseEntity entity);
+        Task DispatchAndClearEventsAsync(IEnumerable<BaseEntity> entities);
     }
 }

@@ -8,3 +8,7 @@ global using FlashSale.Infrastructure.Repositories;
 global using Microsoft.Extensions.DependencyInjection;
 global using System.Reflection;
 global using FlashSale.Core.Common;
+global using FlashSale.Core.Services;
+global using FlashSale.Infrastructure.Services.Redis;
+global using Microsoft.Extensions.Configuration;
+global using StackExchange.Redis;

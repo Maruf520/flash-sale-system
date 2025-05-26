@@ -15,5 +15,6 @@
         Task<List<FlashSaleItem>> GetFlashSaleItemsByEventAsync(Guid eventId);
         Task AddFlashSaleItemAsync(FlashSaleItem flashSaleItem);
         Task UpdateFlashSaleItemAsync(FlashSaleItem flashSaleItem);
+        Task<IEnumerable<FlashSaleItem>> GetActiveFlashSaleItemsAsync();
     }
 }

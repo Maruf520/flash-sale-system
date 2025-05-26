@@ -11,21 +11,26 @@ namespace FlashSale.Core.Entities
         public OrderStatus Status { get; set; }
         public DateTime ExpireAt { get; set; }
 
-        public ApplicationUser User { get; set; } = default!;
-        public Product Product { get; set; } = default!;
-        public FlashSaleItem FlashSaleItem { get; set; } = default!;
+        public string? PaymentId { get; set; }                    
+        public DateTime? PaymentCompletedAt { get; set; }        
+        public string? CancellationReason { get; set; }          
+        public DateTime? CancelledAt { get; set; }               
 
         public string? PaymentMethod { get; set; }
         public string? TransactionId { get; set; }
 
+        public ApplicationUser User { get; set; } = default!;
+        public Product Product { get; set; } = default!;
+        public FlashSaleItem FlashSaleItem { get; set; } = default!;
+
         public static Order Create(
-          Guid userId,
-          Guid productId,
-          Guid flashSaleItemId,
-          decimal price,
-          DateTime expireAt,
-          string? paymentMethod = null,
-          string? transactionId = null)
+            Guid userId,
+            Guid productId,
+            Guid flashSaleItemId,
+            decimal price,
+            DateTime expireAt,
+            string? paymentMethod = null,
+            string? transactionId = null)
         {
             var order = new Order
             {
@@ -40,7 +45,6 @@ namespace FlashSale.Core.Entities
             };
 
             order.AddDomainEvent(new OrderPlacedEvent(order));
-
             return order;
         }
     }

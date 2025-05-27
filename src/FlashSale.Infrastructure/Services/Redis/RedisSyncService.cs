@@ -1,12 +1,8 @@
-﻿using FlashSale.Core.Services;
-using Microsoft.Extensions.Logging;
-using StackExchange.Redis;
-
-namespace FlashSale.Infrastructure.Services.Redis
+﻿namespace FlashSale.Infrastructure.Services.Redis
 {
     public class RedisSyncService : IRedisSyncService
     {
-        private readonly IConnectionMultiplexer _redis;   
+        private readonly IConnectionMultiplexer _redis;
         private readonly IDatabase _database;
         private readonly IFlashSaleRepository _flashSaleRepository;
         private readonly IRedisStockService _redisStockService;
@@ -20,7 +16,7 @@ namespace FlashSale.Infrastructure.Services.Redis
         {
             _redis = redis;
 
-            _database = redis.GetDatabase(); 
+            _database = redis.GetDatabase();
             _flashSaleRepository = flashSaleRepository;
             _redisStockService = redisStockService;
             _logger = logger;
@@ -39,12 +35,11 @@ namespace FlashSale.Infrastructure.Services.Redis
                     return;
                 }
 
-                // 🔥 INITIALIZE REDIS FROM DATABASE AVAILABLESTOCK
                 await _redisStockService.InitializeStockAsync(
                     flashSaleItemId,
-                    totalQuantity: flashSaleItem.AvailableStock,  // Use AvailableStock as initial total
-                    soldQuantity: 0,                              // Start with 0 sold
-                    availableQuantity: flashSaleItem.AvailableStock // All stock is available initially
+                    totalQuantity: flashSaleItem.AvailableStock,  
+                    soldQuantity: 0,                              
+                    availableQuantity: flashSaleItem.AvailableStock 
                 );
 
                 _logger.LogInformation(
@@ -101,7 +96,6 @@ namespace FlashSale.Infrastructure.Services.Redis
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to remove FlashSaleItem {FlashSaleItemId} from Redis", flashSaleItemId);
-                // Don't throw - removal failures are not critical
             }
         }
 
@@ -114,7 +108,7 @@ namespace FlashSale.Infrastructure.Services.Redis
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to check if FlashSaleItem {FlashSaleItemId} is synced", flashSaleItemId);
-                return false; // Assume not synced if we can't check
+                return false; 
             }
         }
 
@@ -131,24 +125,21 @@ namespace FlashSale.Infrastructure.Services.Redis
                     return;
                 }
 
-                // Get current Redis state
                 var currentAvailable = await _redisStockService.GetAvailableStockAsync(flashSaleItemId);
                 var currentReserved = await _redisStockService.GetReservedStockAsync(flashSaleItemId);
                 var currentSold = await _redisStockService.GetSoldStockAsync(flashSaleItemId);
 
-                // Calculate new totals based on database
-                var newTotalQuantity = flashSaleItem.AvailableStock + currentSold; // Database stock + already sold
-                var newAvailableQuantity = flashSaleItem.AvailableStock; // What's currently in database
+                var newTotalQuantity = flashSaleItem.AvailableStock + currentSold; 
+                var newAvailableQuantity = flashSaleItem.AvailableStock; 
 
-                // Re-sync with current state preserved
                 await _redisStockService.InitializeStockAsync(
                     flashSaleItemId,
                     totalQuantity: newTotalQuantity,
-                    soldQuantity: currentSold,      // Preserve sold count
+                    soldQuantity: currentSold,     
                     availableQuantity: newAvailableQuantity
                 );
 
-                // Restore reservations if any
+          
                 if (currentReserved > 0)
                 {
                     await _redisStockService.ReserveStockAsync(flashSaleItemId, currentReserved, 15);

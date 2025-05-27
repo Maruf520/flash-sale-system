@@ -12,3 +12,4 @@ global using FlashSale.Core.Services;
 global using FlashSale.Infrastructure.Services.Redis;
 global using Microsoft.Extensions.Configuration;
 global using StackExchange.Redis;
+global using Microsoft.Extensions.Logging;

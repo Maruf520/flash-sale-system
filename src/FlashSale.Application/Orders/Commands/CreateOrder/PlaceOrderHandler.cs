@@ -13,44 +13,52 @@ IDomainEventDispatcher _domainEventDispatcher
     {
         var dto = request.Order;
 
-        var flashSaleItem = await _flashSaleRepository
-            .GetFlashSaleItemByProductAndEventAsync(dto.ProductId, dto.FlashSaleEventId);
+        var flashSalevent = await _flashSaleRepository
+            .GetActiveFlashSaleEventAsync(dto.FlashSaleEventId);
 
-        if (flashSaleItem == null)
+        if (flashSalevent == null)
         {
             throw new InvalidOperationException("Product not found in this flash sale event");
         }
 
-
         var now = DateTime.UtcNow;
-        if (flashSaleItem.FlashSaleEventEntity.StartTime > now ||
-            flashSaleItem.FlashSaleEventEntity.EndTime < now ||
-            !flashSaleItem.FlashSaleEventEntity.IsActive)
+        if (flashSalevent.StartTime > now ||
+            flashSalevent.EndTime < now ||
+            !flashSalevent.IsActive)
         {
             throw new InvalidOperationException("Flash sale is not active");
         }
 
+        var availableStock = await _redisStockService.GetAvailableStockAsync(dto.FlashSaleItemId);
+        _logger.LogInformation("Available stock for FlashSaleItem {FlashSaleItemId}: {Stock}",
+            dto.FlashSaleItemId, availableStock);
+
+        if (availableStock < 1)
+        {
+            throw new InvalidOperationException("Product is out of stock");
+        }
 
         var stockReserved = await _redisStockService.ReserveStockAsync(
-            flashSaleItem.Id,
+            dto.FlashSaleItemId,
             quantity: 1,
             reservationTtlMinutes: 15);
 
         if (!stockReserved)
         {
-            _logger.LogWarning(
-                "Failed to reserve stock for FlashSaleItem {FlashSaleItemId} for User {UserId}",
-                flashSaleItem.Id, dto.UserId);
+            _logger.LogWarning("Failed to reserve stock for FlashSaleItem {FlashSaleItemId} for User {UserId}",
+                dto.FlashSaleItemId, dto.UserId);
             throw new InvalidOperationException("Product is out of stock");
         }
+
+        var productItem = await _flashSaleRepository.GetFlashSaleItemByIdAsync(request.Order.FlashSaleItemId);
 
         try
         {
             var order = Order.Create(
                 userId: dto.UserId,
                 productId: dto.ProductId,
-                flashSaleItemId: flashSaleItem.Id,
-                price: flashSaleItem.DiscountedPrice,
+                flashSaleItemId: flashSalevent.Id,
+                price: productItem.DiscountedPrice,
                 expireAt: DateTime.UtcNow.AddMinutes(15),
                 paymentMethod: dto.PaymentMethod,
                 transactionId: dto.TransactionId
@@ -61,7 +69,7 @@ IDomainEventDispatcher _domainEventDispatcher
 
             _logger.LogInformation(
                 "Order {OrderId} created successfully for FlashSaleItem {FlashSaleItemId}",
-                order.Id, flashSaleItem.Id);
+                order.Id, flashSalevent.Id);
 
             return new PlaceOrderResult(order.Id);
         }
@@ -69,9 +77,9 @@ IDomainEventDispatcher _domainEventDispatcher
         {
             _logger.LogError(ex,
                 "Failed to create order for FlashSaleItem {FlashSaleItemId}, releasing reserved stock",
-                flashSaleItem.Id);
+                flashSalevent.Id);
 
-            await _redisStockService.ReleaseStockAsync(flashSaleItem.Id, 1);
+            await _redisStockService.ReleaseStockAsync(flashSalevent.Id, 1);
             throw;
         }
     }

@@ -1,16 +1,10 @@
-﻿using FlashSale.Core.Services;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.Extensions.Logging;
-using StackExchange.Redis;
-
-namespace FlashSale.Infrastructure.Services.Redis
+﻿namespace FlashSale.Infrastructure.Services.Redis
 {
     public class RedisStockService : IRedisStockService
     {
         private readonly StackExchange.Redis.IDatabase _database;
         private readonly ILogger<RedisStockService> _logger;
 
-        // Lua Scripts for atomic operations
         private const string RESERVE_STOCK_SCRIPT = @"
             local stock_key = KEYS[1]
             local reserved_key = KEYS[2] 
@@ -52,34 +46,42 @@ namespace FlashSale.Infrastructure.Services.Redis
         ";
 
         private const string RELEASE_STOCK_SCRIPT = @"
-            local stock_key = KEYS[1]
-            local reserved_key = KEYS[2]
-            local quantity = tonumber(ARGV[1])
-            
-            -- Get current reserved stock
-            local reserved = tonumber(redis.call('GET', reserved_key) or 0)
-            
-            if reserved >= quantity then
-                -- Return stock from reserved to available
-                redis.call('INCRBY', stock_key, quantity)
-                redis.call('DECRBY', reserved_key, quantity)
-                return 1
-            else
-                return 0
-            end
-        ";
+    local key = KEYS[1]
+    local quantity = tonumber(ARGV[1])
+    
+    -- Check if hash exists
+    if redis.call('EXISTS', key) == 0 then
+        return -1  -- Stock not initialized
+    end
+    
+    -- Get current reserved stock from hash
+    local reserved = tonumber(redis.call('HGET', key, 'reserved') or 0)
+    local available = tonumber(redis.call('HGET', key, 'available') or 0)
+    
+    if reserved >= quantity then
+        -- Return stock from reserved to available (using hash operations)
+        redis.call('HSET', key, 'available', available + quantity)
+        redis.call('HSET', key, 'reserved', reserved - quantity)
+        return 1  -- Success
+    else
+        return 0  -- Insufficient reserved stock
+    end
+";
 
         private const string GET_STOCK_INFO_SCRIPT = @"
-            local stock_key = KEYS[1]
-            local reserved_key = KEYS[2]
-            local sold_key = KEYS[3]
-            
-            local available = tonumber(redis.call('GET', stock_key) or 0)
-            local reserved = tonumber(redis.call('GET', reserved_key) or 0)
-            local sold = tonumber(redis.call('GET', sold_key) or 0)
-            
-            return {available, reserved, sold}
-        ";
+        local key = KEYS[1]
+        
+        -- Check if hash exists
+        if redis.call('EXISTS', key) == 0 then
+            return {0, 0, 0}  -- available, reserved, sold
+        end
+        
+        local available = tonumber(redis.call('HGET', key, 'available') or 0)
+        local reserved = tonumber(redis.call('HGET', key, 'reserved') or 0)
+        local sold = tonumber(redis.call('HGET', key, 'sold') or 0)
+        
+        return {available, reserved, sold}
+    ";
 
         public RedisStockService(IConnectionMultiplexer redis, ILogger<RedisStockService> logger)
         {
@@ -91,7 +93,6 @@ namespace FlashSale.Infrastructure.Services.Redis
         {
             try
             {
-                // 🔥 OPTION 1: Using Hash structure (consistent with your InitializeStockAsync)
                 var key = $"stock:{flashSaleItemId}";
                 var reserved = await _database.HashGetAsync(key, "reserved");
 
@@ -100,7 +101,6 @@ namespace FlashSale.Infrastructure.Services.Redis
                     return (int)reserved;
                 }
 
-                // 🔥 OPTION 2: Fallback to separate keys structure (your original approach)
                 var keys = GetRedisKeys(flashSaleItemId);
                 var reservedSeparate = await _database.StringGetAsync(keys.ReservedKey);
 
@@ -113,12 +113,10 @@ namespace FlashSale.Infrastructure.Services.Redis
             }
         }
 
-        // 🔥 MISSING METHOD 2: GetSoldStockAsync
         public async Task<int> GetSoldStockAsync(Guid flashSaleItemId)
         {
             try
             {
-                // 🔥 OPTION 1: Using Hash structure (consistent with your InitializeStockAsync)
                 var key = $"stock:{flashSaleItemId}";
                 var sold = await _database.HashGetAsync(key, "sold");
 
@@ -127,7 +125,6 @@ namespace FlashSale.Infrastructure.Services.Redis
                     return (int)sold;
                 }
 
-                // 🔥 OPTION 2: Fallback to separate keys structure (your original approach)
                 var keys = GetRedisKeys(flashSaleItemId);
                 var soldSeparate = await _database.StringGetAsync(keys.SoldKey);
 
@@ -140,12 +137,11 @@ namespace FlashSale.Infrastructure.Services.Redis
             }
         }
 
-        
+
         public async Task<int> GetTotalStockAsync(Guid flashSaleItemId)
         {
             try
             {
-                // Using Hash structure
                 var key = $"stock:{flashSaleItemId}";
                 var total = await _database.HashGetAsync(key, "total");
 
@@ -189,23 +185,44 @@ namespace FlashSale.Infrastructure.Services.Redis
 
         public async Task<bool> ReleaseStockAsync(Guid flashSaleItemId, int quantity = 1)
         {
-            var keys = GetRedisKeys(flashSaleItemId);
+            var key = $"stock:{flashSaleItemId}";
 
             try
             {
                 var result = await _database.ScriptEvaluateAsync(
                     RELEASE_STOCK_SCRIPT,
-                    new RedisKey[] { keys.StockKey, keys.ReservedKey },
+                    new RedisKey[] { key },  
                     new RedisValue[] { quantity }
                 );
 
-                var success = (int)result == 1;
+                var resultCode = (int)result;
 
-                _logger.LogInformation(
-                    "Stock release for FlashSaleItem {FlashSaleItemId}: {Quantity} units - {Result}",
-                    flashSaleItemId, quantity, success ? "SUCCESS" : "FAILED");
+                switch (resultCode)
+                {
+                    case 1:
+                        _logger.LogInformation(
+                            "Successfully released {Quantity} units for FlashSaleItem {FlashSaleItemId}",
+                            quantity, flashSaleItemId);
+                        return true;
 
-                return success;
+                    case 0:
+                        _logger.LogWarning(
+                            "Failed to release {Quantity} units for FlashSaleItem {FlashSaleItemId} - insufficient reserved stock",
+                            quantity, flashSaleItemId);
+                        return false;
+
+                    case -1:
+                        _logger.LogWarning(
+                            "Stock not initialized for FlashSaleItem {FlashSaleItemId}",
+                            flashSaleItemId);
+                        return false;
+
+                    default:
+                        _logger.LogWarning(
+                            "Unexpected result {Result} from release script for FlashSaleItem {FlashSaleItemId}",
+                            resultCode, flashSaleItemId);
+                        return false;
+                }
             }
             catch (Exception ex)
             {
@@ -218,23 +235,21 @@ namespace FlashSale.Infrastructure.Services.Redis
 
         public async Task<int> GetAvailableStockAsync(Guid flashSaleItemId)
         {
-            var keys = GetRedisKeys(flashSaleItemId);
+            var key = $"stock:{flashSaleItemId}";
 
             try
             {
                 var result = await _database.ScriptEvaluateAsync(
                     GET_STOCK_INFO_SCRIPT,
-                    new RedisKey[] { keys.StockKey, keys.ReservedKey, keys.SoldKey }
+                    new RedisKey[] { key }
                 );
 
                 var stockInfo = (RedisValue[])result;
-                return (int)stockInfo[0]; // Available stock
+                return (int)stockInfo[0]; // available stock
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,
-                    "Error getting stock info for FlashSaleItem {FlashSaleItemId}",
-                    flashSaleItemId);
+                _logger.LogError(ex, "Error getting stock info for FlashSaleItem {FlashSaleItemId}", flashSaleItemId);
                 return 0;
             }
         }
@@ -290,11 +305,10 @@ namespace FlashSale.Infrastructure.Services.Redis
                     new("total", totalQuantity),
                     new("sold", soldQuantity),
                     new("available", availableQuantity),
-                    new("reserved", 0), // Start with no reservations
+                    new("reserved", 0),
                     new("synced_at", DateTimeOffset.UtcNow.ToUnixTimeSeconds())
                 });
 
-                // Set expiration (e.g., 24 hours)
                 await _database.KeyExpireAsync(key, TimeSpan.FromHours(24));
 
                 _logger.LogDebug(
@@ -308,48 +322,66 @@ namespace FlashSale.Infrastructure.Services.Redis
             }
         }
 
-        // 🔥 NEW: Remove stock data
         public async Task RemoveStockAsync(Guid flashSaleItemId)
         {
             var key = $"stock:{flashSaleItemId}";
             await _database.KeyDeleteAsync(key);
         }
 
-        // 🔥 NEW: Check if stock exists in Redis
         public async Task<bool> ExistsAsync(Guid flashSaleItemId)
         {
             var key = $"stock:{flashSaleItemId}";
             return await _database.KeyExistsAsync(key);
         }
 
-        // Enhanced reserve method with sync check
         public async Task<bool> ReserveStockAsync(Guid flashSaleItemId, int quantity, int reservationTtlMinutes)
         {
             var key = $"stock:{flashSaleItemId}";
 
-            // 🔥 CHECK IF SYNCED FIRST
             if (!await ExistsAsync(flashSaleItemId))
             {
                 _logger.LogWarning("FlashSaleItem {FlashSaleItemId} not synced to Redis", flashSaleItemId);
                 return false;
             }
 
-            // Lua script for atomic reservation
             const string script = @"
-                local available = redis.call('HGET', KEYS[1], 'available') or 0
-                local quantity = tonumber(ARGV[1])
-                
-                if tonumber(available) >= quantity then
-                    redis.call('HSET', KEYS[1], 'available', available - quantity)
-                    redis.call('HSET', KEYS[1], 'reserved', (redis.call('HGET', KEYS[1], 'reserved') or 0) + quantity)
-                    redis.call('EXPIRE', KEYS[1], ARGV[2] * 60)
-                    return 1
-                else
-                    return 0
-                end";
+            local key = KEYS[1]
+            local quantity = tonumber(ARGV[1])
+            local ttl = tonumber(ARGV[2])
+            
+            -- Get current available stock
+            local available = tonumber(redis.call('HGET', key, 'available') or 0)
+            
+            -- Check if we have enough stock
+            if available >= quantity then
+                -- Atomically update both fields
+                redis.call('HSET', key, 'available', available - quantity)
+                redis.call('HSET', key, 'reserved', (redis.call('HGET', key, 'reserved') or 0) + quantity)
+                redis.call('EXPIRE', key, ttl * 60)
+                return 1  -- Success
+            else
+                return 0  -- Insufficient stock
+            end";
 
-            var result = await _database.ScriptEvaluateAsync(script, new RedisKey[] { key }, new RedisValue[] { quantity, reservationTtlMinutes });
-            return (int)result == 1;
+            var result = await _database.ScriptEvaluateAsync(
+                script,
+                new RedisKey[] { key },
+                new RedisValue[] { quantity, reservationTtlMinutes });
+
+            var success = (int)result == 1;
+
+            if (success)
+            {
+                _logger.LogInformation("Reserved {Quantity} units for FlashSaleItem {FlashSaleItemId}",
+                    quantity, flashSaleItemId);
+            }
+            else
+            {
+                _logger.LogWarning("Failed to reserve {Quantity} units for FlashSaleItem {FlashSaleItemId}",
+                    quantity, flashSaleItemId);
+            }
+
+            return success;
         }
         private class RedisKeys
         {

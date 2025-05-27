@@ -46,27 +46,19 @@
         ";
 
         private const string RELEASE_STOCK_SCRIPT = @"
-    local key = KEYS[1]
-    local quantity = tonumber(ARGV[1])
+        local key = KEYS[1]
+        local quantity = tonumber(ARGV[1])
     
-    -- Check if hash exists
-    if redis.call('EXISTS', key) == 0 then
-        return -1  -- Stock not initialized
-    end
+        -- Get current values (same way as reserve script)
+        local available = tonumber(redis.call('HGET', key, 'available') or 0)
+        local reserved = tonumber(redis.call('HGET', key, 'reserved') or 0)
     
-    -- Get current reserved stock from hash
-    local reserved = tonumber(redis.call('HGET', key, 'reserved') or 0)
-    local available = tonumber(redis.call('HGET', key, 'available') or 0)
-    
-    if reserved >= quantity then
-        -- Return stock from reserved to available (using hash operations)
+        -- Update both fields (exact reverse of reserve script)
         redis.call('HSET', key, 'available', available + quantity)
         redis.call('HSET', key, 'reserved', reserved - quantity)
-        return 1  -- Success
-    else
-        return 0  -- Insufficient reserved stock
-    end
-";
+    
+        return 1
+    ";
 
         private const string GET_STOCK_INFO_SCRIPT = @"
         local key = KEYS[1]
@@ -191,7 +183,7 @@
             {
                 var result = await _database.ScriptEvaluateAsync(
                     RELEASE_STOCK_SCRIPT,
-                    new RedisKey[] { key },  
+                    new RedisKey[] { key },
                     new RedisValue[] { quantity }
                 );
 
@@ -214,6 +206,12 @@
                     case -1:
                         _logger.LogWarning(
                             "Stock not initialized for FlashSaleItem {FlashSaleItemId}",
+                            flashSaleItemId);
+                        return false;
+
+                    case -2:
+                        _logger.LogWarning(
+                            "No reserved stock found for FlashSaleItem {FlashSaleItemId}",
                             flashSaleItemId);
                         return false;
 

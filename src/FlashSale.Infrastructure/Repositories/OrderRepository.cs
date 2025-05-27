@@ -18,8 +18,8 @@ namespace FlashSale.Infrastructure.Repositories
             return await _context.Orders
                 .Include(o => o.User)
                 .Include(o => o.Product)
-                .Include(o => o.FlashSaleItem)                    // Changed from FlashSale
-                    .ThenInclude(fsi => fsi.FlashSaleEventEntity) // Include the event
+                .Include(o => o.FlashSaleItem)                    
+                    .ThenInclude(fsi => fsi.FlashSaleEventEntity) 
                 .FirstOrDefaultAsync(o => o.Id == id);
         }
 
@@ -27,10 +27,10 @@ namespace FlashSale.Infrastructure.Repositories
         {
             return await _context.Orders
                 .Include(o => o.Product)
-                .Include(o => o.FlashSaleItem)                    // Changed from FlashSale
-                    .ThenInclude(fsi => fsi.FlashSaleEventEntity) // Include the event
+                .Include(o => o.FlashSaleItem)                    
+                    .ThenInclude(fsi => fsi.FlashSaleEventEntity) 
                 .Where(o => o.UserId == userId)
-                .OrderByDescending(o => o.CreatedAt)              // Most recent orders first
+                .OrderByDescending(o => o.CreatedAt)              
                 .ToListAsync();
         }
 
@@ -46,7 +46,6 @@ namespace FlashSale.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        // Additional useful methods
         public async Task<IEnumerable<Order>> GetByFlashSaleEventIdAsync(Guid flashSaleEventId)
         {
             return await _context.Orders

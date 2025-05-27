@@ -49,9 +49,9 @@ IDomainEventDispatcher _domainEventDispatcher
         try
         {
             var order = Order.Create(
-                userId: dto.UserId,
-                productId: dto.ProductId,
-                flashSaleItemId: flashSalevent.Id,
+                userId: new Guid("7B99CFC9-1B09-47F0-B45B-133AA1652999"),
+                productId: productItem.ProductId,
+                flashSaleItemId: dto.FlashSaleItemId,
                 price: productItem.DiscountedPrice,
                 expireAt: DateTime.UtcNow.AddMinutes(15),
                 paymentMethod: dto.PaymentMethod,
@@ -73,7 +73,7 @@ IDomainEventDispatcher _domainEventDispatcher
                 "Failed to create order for FlashSaleItem {FlashSaleItemId}, releasing reserved stock",
                 flashSalevent.Id);
 
-            await _redisStockService.ReleaseStockAsync(flashSalevent.Id, 1);
+            await _redisStockService.ReleaseStockAsync(dto.FlashSaleItemId, 1);
             throw;
         }
     }

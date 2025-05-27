@@ -1,10 +1,4 @@
-﻿using FlashSale.Core.Enums;
-using FlashSale.Core.Events;
-using FlashSale.Core.Repositories;
-using MediatR;
-using Microsoft.Extensions.Logging;
-
-namespace FlashSale.Application.Payment.Command
+﻿namespace FlashSale.Application.Payment.Command
 {
     public class ConfirmPaymentHandler(
            IOrderRepository _orderRepository,

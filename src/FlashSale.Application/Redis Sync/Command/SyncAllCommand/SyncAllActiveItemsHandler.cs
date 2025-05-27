@@ -1,10 +1,4 @@
-﻿using FlashSale.Core.Repositories;
-using FlashSale.Core.Services;
-using MediatR;
-using Microsoft.Extensions.Logging;
-using System.Diagnostics;
-
-public class SyncAllActiveItemsHandler(
+﻿public class SyncAllActiveItemsHandler(
     IRedisSyncService _redisSyncService,
     IRedisStockService _redisStockService,
     IFlashSaleRepository _flashSaleRepository,

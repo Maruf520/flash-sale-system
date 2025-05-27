@@ -1,6 +1,4 @@
-﻿using FlashSale.Core.Common;
-
-namespace FlashSale.Application.Events
+﻿namespace FlashSale.Application.Events
 {
     public interface IDomainEventDispatcher
     {

@@ -1,10 +1,4 @@
-﻿using FlashSale.Core.Repositories;
-using FlashSale.Core.Services;
-using MediatR;
-using Microsoft.Extensions.Logging;
-using System.Diagnostics;
-
-public class SyncSpecificItemHandler(
+﻿public class SyncSpecificItemHandler(
     IRedisSyncService redisSyncService,
     IRedisStockService redisStockService,
     IFlashSaleRepository flashSaleRepository,

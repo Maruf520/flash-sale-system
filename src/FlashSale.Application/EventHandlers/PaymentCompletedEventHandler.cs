@@ -1,11 +1,4 @@
-﻿using FlashSale.Core.Enums;
-using FlashSale.Core.Events;
-using FlashSale.Core.Repositories;
-using FlashSale.Core.Services;
-using MediatR;
-using Microsoft.Extensions.Logging;
-
-namespace FlashSale.Application.EventHandlers
+﻿namespace FlashSale.Application.EventHandlers
 {
     public class PaymentCompletedEventHandler(
    IRedisStockService _redisStockService,

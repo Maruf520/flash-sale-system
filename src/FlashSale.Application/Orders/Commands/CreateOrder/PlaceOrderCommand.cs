@@ -1,8 +1,4 @@
-﻿using FlashSale.Application.Dtos;
-using FluentValidation;
-using MediatR;
-
-public record PlaceOrderCommand(OrderDto Order) : IRequest<PlaceOrderResult>;
+﻿public record PlaceOrderCommand(OrderDto Order) : IRequest<PlaceOrderResult>;
 public record PlaceOrderResult(Guid Id);
 
 public class PlaceOrderCommandValidator : AbstractValidator<PlaceOrderCommand>

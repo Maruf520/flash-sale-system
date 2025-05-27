@@ -1,7 +1,4 @@
-﻿using FlashSale.Core.Common;
-using MediatR;
-
-namespace FlashSale.Application.Events
+﻿namespace FlashSale.Application.Events
 {
     public class DomainEventDispatcher : IDomainEventDispatcher
     {

@@ -1,10 +1,4 @@
-﻿using FlashSale.Core.Entities;
-using FlashSale.Core.Repositories;
-using FlashSale.Core.Services;
-using MediatR;
-using Microsoft.Extensions.Logging;
-
-public class PlaceOrderHandler(
+﻿public class PlaceOrderHandler(
     IOrderRepository _orderRepository, IFlashSaleRepository _flashSaleRepository, IRedisStockService _redisStockService, ILogger<PlaceOrderHandler> _logger,
 IDomainEventDispatcher _domainEventDispatcher
 ) : IRequestHandler<PlaceOrderCommand, PlaceOrderResult>

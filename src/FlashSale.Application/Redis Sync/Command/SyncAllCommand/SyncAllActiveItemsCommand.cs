@@ -1,7 +1,4 @@
-﻿using FluentValidation;
-using MediatR;
-
-public record SyncAllActiveItemsCommand(string? TriggeredBy, bool ForceSync = false) : IRequest<SyncAllActiveItemsResult>;
+﻿public record SyncAllActiveItemsCommand(string? TriggeredBy, bool ForceSync = false) : IRequest<SyncAllActiveItemsResult>;
 
 public record SyncAllActiveItemsResult(
     bool Success,

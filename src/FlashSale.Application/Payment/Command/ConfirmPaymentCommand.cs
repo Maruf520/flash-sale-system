@@ -1,8 +1,4 @@
-﻿using FlashSale.Application.Dtos;
-using FluentValidation;
-using MediatR;
-
-namespace FlashSale.Application.Payment.Command
+﻿namespace FlashSale.Application.Payment.Command
 {
     public record ConfirmPaymentCommand(PaymentDto Payment) : IRequest<ConfirmPaymentResult>;
 

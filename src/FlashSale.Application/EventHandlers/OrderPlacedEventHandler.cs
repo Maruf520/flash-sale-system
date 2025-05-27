@@ -1,8 +1,4 @@
-﻿using FlashSale.Core.Events;
-using MediatR;
-using Microsoft.Extensions.Logging;
-
-namespace FlashSale.Application.EventHandlers
+﻿namespace FlashSale.Application.EventHandlers
 {
     public class OrderPlacedEventHandler : INotificationHandler<OrderPlacedEvent>
     {

@@ -1,7 +1,4 @@
-﻿using FluentValidation;
-using MediatR;
-
-public record SyncSpecificItemCommand(
+﻿public record SyncSpecificItemCommand(
     Guid FlashSaleItemId,
     string? TriggeredBy,
     bool ForceSync = false

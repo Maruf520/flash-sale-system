@@ -1,10 +1,12 @@
 using FlashSale.Application;
 using FlashSale.Infrastructure;
+using FlashSale.Workers;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddApplicationLayer();
 builder.Services.AddInfrastructureLayer(builder.Configuration);
+builder.Services.AddWorkerServiceLayer(builder.Configuration);
 
 builder.Services.AddMediatR(configuration =>
 {

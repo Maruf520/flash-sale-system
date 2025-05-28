@@ -14,11 +14,6 @@
   <ItemGroup>
     <Folder Include="Caching\" />
     <Folder Include="Data\Migrations\" />
-    <Folder Include="Email\" />
-    <Folder Include="Identity\" />
-    <Folder Include="Interfaces\" />
-    <Folder Include="Messaging\" />
-    <Folder Include="Services\Email\" />
   </ItemGroup>
 
   <ItemGroup>

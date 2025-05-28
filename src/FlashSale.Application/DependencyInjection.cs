@@ -9,7 +9,7 @@
 
             services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
 
-            return services;
+                return services;
         }
     }
 }

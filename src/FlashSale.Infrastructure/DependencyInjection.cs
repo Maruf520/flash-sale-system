@@ -1,4 +1,6 @@
-﻿namespace FlashSale.Infrastructure
+﻿using FlashSale.Infrastructure.Services.Email;
+
+namespace FlashSale.Infrastructure
 {
     public static class DependencyInjection
     {
@@ -30,6 +32,8 @@
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IRedisSyncService, RedisSyncService>();
             services.AddScoped<IRedisStockService, RedisStockService>();
+            services.AddScoped<IEmailService, SmtpEmailService>();
+
             return services;
         }
     }

@@ -21,6 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="..\FlashSale.Application\FlashSale.Application.csproj" />
     <ProjectReference Include="..\FlashSale.Infrastructure\FlashSale.Infrastructure.csproj" />
+    <ProjectReference Include="..\FlashSale.Workers\FlashSale.Workers.csproj" />
   </ItemGroup>
 
 </Project>

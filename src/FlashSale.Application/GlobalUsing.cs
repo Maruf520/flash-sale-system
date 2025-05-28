@@ -12,3 +12,5 @@ global using FlashSale.Core.Events;
 global using FlashSale.Core.Enums;
 global using FlashSale.Core.Common;
 global using System.Diagnostics;
+global using FlashSale.Core.Messaging.Contracts;
+global using MassTransit;

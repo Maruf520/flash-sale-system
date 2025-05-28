@@ -3,10 +3,11 @@
     public class OrderPlacedEventHandler : INotificationHandler<OrderPlacedEvent>
     {
         private readonly ILogger<OrderPlacedEventHandler> _logger;
-
-        public OrderPlacedEventHandler(ILogger<OrderPlacedEventHandler> logger)
+        private readonly IPublishEndpoint _publishEndpoint;
+        public OrderPlacedEventHandler(ILogger<OrderPlacedEventHandler> logger, IPublishEndpoint publishEndpoint)
         {
             _logger = logger;
+            _publishEndpoint = publishEndpoint;
         }
 
         public async Task Handle(OrderPlacedEvent notification, CancellationToken cancellationToken)
@@ -15,15 +16,12 @@
 
             try
             {
-                _logger.LogInformation(
-                    "Order placed successfully. OrderId: {OrderId}, UserId: {UserId}, ProductId: {ProductId}, Price: {Price}",
-                    order.Id, order.UserId, order.ProductId, order.Price);
+                await _publishEndpoint.Publish<IOrderPlaced>(new
+                {
+                    OrderId = order.Id,
 
-                // 🔥 ADD YOUR BUSINESS LOGIC HERE
-                // TODO: Publish to RabbitMQ
-                // TODO: Send welcome email
-                // TODO: Update analytics
-                // TODO: Notify inventory system
+                    PlacedAt = DateTime.UtcNow
+                });
 
                 Console.WriteLine($"[Domain Event] Order placed: {order.Id}, User: {order.UserId}, Price: {order.Price}");
             }

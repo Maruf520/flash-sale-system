@@ -1,0 +1,16 @@
+﻿global using FlashSale.Application.Events;
+global using Microsoft.Extensions.DependencyInjection;
+global using System.Reflection;
+global using FlashSale.Core.Entities;
+global using FlashSale.Core.Repositories;
+global using FlashSale.Core.Services;
+global using MediatR;
+global using Microsoft.Extensions.Logging;
+global using FlashSale.Application.Dtos;
+global using FluentValidation;
+global using FlashSale.Core.Events;
+global using FlashSale.Core.Enums;
+global using FlashSale.Core.Common;
+global using System.Diagnostics;
+global using FlashSale.Core.Messaging.Contracts;
+global using MassTransit;

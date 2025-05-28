@@ -1,0 +1,41 @@
+using FlashSale.Application;
+using FlashSale.Infrastructure;
+using FlashSale.Workers;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddApplicationLayer();
+builder.Services.AddInfrastructureLayer(builder.Configuration);
+builder.Services.AddWorkerServiceLayer(builder.Configuration);
+
+builder.Services.AddMediatR(configuration =>
+{
+    configuration.RegisterServicesFromAssembly(typeof(PlaceOrderHandler).Assembly);
+});
+
+builder.Services.AddControllers();
+builder.Services.AddOpenApi();
+
+builder.Services.AddSwaggerGen();
+
+var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+        c.RoutePrefix = string.Empty;  // Set Swagger UI at app's root (optional)
+    });
+}
+
+app.UseHttpsRedirection();
+
+
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();

@@ -29,7 +29,7 @@
                         "Stock confirmed and order updated to PAID for Order {OrderId}",
                         order.Id);
 
-                    // 🔥 SEND CONFIRMATION NOTIFICATIONS (Fire and forget)
+
                     _ = Task.Run(async () =>
                     {
                         try
@@ -45,7 +45,7 @@
                 }
                 else
                 {
-                    // Critical error - payment succeeded but stock confirmation failed
+
                     _logger.LogCritical(
                         "CRITICAL: Payment succeeded but stock confirmation failed for Order {OrderId}",
                         order.Id);
@@ -54,7 +54,7 @@
                     order.UpdatedAt = DateTime.UtcNow;
                     await _orderRepository.UpdateAsync(order);
 
-                    // Send critical alert
+
                     _ = Task.Run(async () =>
                     {
                         try

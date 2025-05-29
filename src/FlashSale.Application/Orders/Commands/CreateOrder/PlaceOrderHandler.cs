@@ -1,4 +1,6 @@
-﻿public class PlaceOrderHandler(
+﻿using FlashSale.Core.Exceptions;
+
+public class PlaceOrderHandler(
     IOrderRepository _orderRepository, IFlashSaleRepository _flashSaleRepository, IRedisStockService _redisStockService, ILogger<PlaceOrderHandler> _logger,
 IDomainEventDispatcher _domainEventDispatcher
 ) : IRequestHandler<PlaceOrderCommand, PlaceOrderResult>
@@ -12,7 +14,7 @@ IDomainEventDispatcher _domainEventDispatcher
 
         if (flashSalevent == null)
         {
-            throw new InvalidOperationException("Product not found in this flash sale event");
+            throw new NotFoundException("Flash Sale even not found");
         }
 
         var now = DateTime.UtcNow;
@@ -20,7 +22,7 @@ IDomainEventDispatcher _domainEventDispatcher
             flashSalevent.EndTime < now ||
             !flashSalevent.IsActive)
         {
-            throw new InvalidOperationException("Flash sale is not active");
+            throw new NotFoundException("Flash sale is not active");
         }
 
         var availableStock = await _redisStockService.GetAvailableStockAsync(dto.FlashSaleItemId);
@@ -29,7 +31,7 @@ IDomainEventDispatcher _domainEventDispatcher
 
         if (availableStock < 1)
         {
-            throw new InvalidOperationException("Product is out of stock");
+            throw new OutOfStockException("Product is out of stock");
         }
 
         var stockReserved = await _redisStockService.ReserveStockAsync(
@@ -41,7 +43,7 @@ IDomainEventDispatcher _domainEventDispatcher
         {
             _logger.LogWarning("Failed to reserve stock for FlashSaleItem {FlashSaleItemId} for User {UserId}",
                 dto.FlashSaleItemId, dto.UserId);
-            throw new InvalidOperationException("Product is out of stock");
+            throw new OutOfStockException("Product is out of stock");
         }
 
         var productItem = await _flashSaleRepository.GetFlashSaleItemByIdAsync(request.Order.FlashSaleItemId);
@@ -49,7 +51,7 @@ IDomainEventDispatcher _domainEventDispatcher
         try
         {
             var order = Order.Create(
-                userId: new Guid("7B99CFC9-1B09-47F0-B45B-133AA1652999"),
+                userId: new Guid("7B99CFC9-1B09-47F0-B45B-133AA165297g"),
                 productId: productItem.ProductId,
                 flashSaleItemId: dto.FlashSaleItemId,
                 price: productItem.DiscountedPrice,

@@ -16,7 +16,7 @@ namespace FlashSale.Workers
 
                 x.UsingRabbitMq((context, cfg) =>
                 {
-                    cfg.Host(configuration["RabbitMQ:Host"], "/", h =>
+                    cfg.Host(configuration["RabbitMQ:Host"], "Test", h =>
                     {
                         h.Username(configuration["RabbitMQ:Username"]);
                         h.Password(configuration["RabbitMQ:Password"]);

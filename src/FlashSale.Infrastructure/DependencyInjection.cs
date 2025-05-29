@@ -1,4 +1,5 @@
-﻿using FlashSale.Infrastructure.Services.Email;
+﻿using FlashSale.Infrastructure.Exceptions;
+using FlashSale.Infrastructure.Services.Email;
 
 namespace FlashSale.Infrastructure
 {
@@ -33,6 +34,7 @@ namespace FlashSale.Infrastructure
             services.AddScoped<IRedisSyncService, RedisSyncService>();
             services.AddScoped<IRedisStockService, RedisStockService>();
             services.AddScoped<IEmailService, SmtpEmailService>();
+            services.AddScoped<CustomExceptionHandler>();
 
             return services;
         }

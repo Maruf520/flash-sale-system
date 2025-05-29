@@ -1,5 +1,7 @@
+using FlashSale.API.Middlewares;
 using FlashSale.Application;
 using FlashSale.Infrastructure;
+using FlashSale.Infrastructure.Exceptions;
 using FlashSale.Workers;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,7 +32,7 @@ if (app.Environment.IsDevelopment())
         c.RoutePrefix = string.Empty;  // Set Swagger UI at app's root (optional)
     });
 }
-
+app.UseMiddleware<CustomExceptionMiddleware>();
 app.UseHttpsRedirection();
 
 
